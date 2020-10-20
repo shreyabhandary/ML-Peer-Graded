@@ -1,0 +1,279 @@
+---
+title: "Machine Learning Project"
+author: "Shreya R Bhandary"
+date: "20/10/2020"
+output: html_document
+---
+
+```{r,warning=FALSE,message=FALSE,include=FALSE,echo=FALSE}
+# loading libraries
+# if the below libraries are not installed in your system, please install them
+library(dplyr)
+library(ggplot2)
+library(DT)
+library(caret)
+library(knitr)
+library(corrplot)
+library(plotly)
+library(correlationfunnel)
+library(GGally)
+library(e1071)
+#library(rattle)
+```
+
+
+
+```{r}
+xxxxaa <- read.csv("C:\\Users\\MAHE\\Downloads\\pml-training.csv", stringsAsFactors = F,na.strings = c("","NA","#DIV/0!"))
+yyyybb <- read.csv("C:\\Users\\MAHE\\Downloads\\pml-testing.csv", stringsAsFactors = F,na.strings = c("","NA","#DIV/0!"))
+dim(xxxxaa); dim(yyyybb)
+```
+
+
+
+```{r}
+#for reproducability
+set.seed(101)
+zzzzcc <- createDataPartition(xxxxaa$classe, p = 0.8, list = F)
+pqrs <- xxxxaa[-zzzzcc,]
+xxxxaa <- xxxxaa[zzzzcc,]
+dim(xxxxaa); dim(pqrs)
+```
+
+
+```{r}
+table(xxxxaa$classe)/nrow(xxxxaa)
+```
+
+
+```{r}
+dddrr <- sapply(select(xxxxaa,names(xxxxaa)[grepl("_belt",names(xxxxaa))]),
+                    function(x) sum(is.na(x)))
+dddrr
+```
+
+```{r}
+wxyz <- sapply(select(xxxxaa,names(xxxxaa)[grepl("_arm",names(xxxxaa))]),
+                   function(x) sum(is.na(x)))
+wxyz
+```  
+
+
+```{r}
+sffgff <- sapply(select(xxxxaa,
+                              names(xxxxaa)[grepl("_forearm",names(xxxxaa))]),
+                       function(x) sum(is.na(x)))
+sffgff
+```  
+
+```{r}
+drnt <- sapply(select(xxxxaa,
+                               names(xxxxaa)[grepl("_dumbbell",names(xxxxaa))]),
+                        function(x) sum(is.na(x)))
+drnt
+``` 
+
+```{r}
+clmrrrn_2rerdrorpr <- c(names(dddrr[dddrr != 0]), 
+                  names(wxyz[wxyz != 0]),
+                  names(sffgff[sffgff != 0]),
+                  names(drnt[drnt != 0]))
+length(clmrrrn_2rerdrorpr)
+```
+
+```{r}
+#dropping the cols
+ftgh <- tbl_df(xxxxaa %>% 
+                      select(-clmrrrn_2rerdrorpr,
+                             -c(X,user_name, raw_timestamp_part_1, 
+                                raw_timestamp_part_2, cvtd_timestamp, 
+                                new_window,num_window)))
+ftgh$classe <- as.factor(ftgh$classe)
+ftgh[,1:52] <- lapply(ftgh[,1:52],as.numeric)
+dim(ftgh)
+```
+
+```{r,fig.height=10,fig.width=10}
+klrs <- cor(select(ftgh, -classe))
+diag(klrs) <- 0
+klrs <- which(abs(klrs)>0.8,arr.ind = T)
+klrs <- unique(row.names(klrs))
+corrplot(cor(select(ftgh,klrs)),
+         type="upper", order="hclust",method = "number")
+```
+
+```{r}
+# binarizing data
+#correlationfunnel website: https://business-science.github.io/correlationfunnel/
+ytsghjjj <- ftgh %>% binarize(n_bins = 4, thresh_infreq = 0.01)
+```
+
+```{r,fig.align="center",fig.width=8,fig.height=10}
+crorbr_arq <- ytsghjjj %>% correlate(target = classe__A) 
+crorbr_arq %>% plot_correlation_funnel(interactive = T,limits = c(-0.5,0.5))
+```
+
+```{r, echo=FALSE, eval=FALSE}
+# this section is to find the top features for this classe which are not correlated with others
+teabh_arq <- head(crorbr_arq %>% mutate(corr = abs(correlation)) %>% 
+  arrange(desc(corr)) %>% select(feature) %>% unique(),20)
+teabh_arq$feature[which(teabh_arq$feature %in% klrs)]
+```
+
+```{r,fig.align="center",fig.width=8,fig.height=10}
+crororrr_brq <- ytsghjjj %>% correlate(target = classe__B)
+crororrr_brq %>% plot_correlation_funnel(interactive = T,limits = c(-0.5,0.5))
+```
+
+
+```{r, echo=FALSE, eval=FALSE}
+# this section is to find the top features for this classe which are not correlated with others
+teraaad_brq <- head(crororrr_brq %>% mutate(corr = abs(correlation)) %>% 
+  arrange(desc(corr)) %>% select(feature) %>% unique(),20)
+teraaad_brq$feature[which(teraaad_brq$feature %in% klrs)]
+```
+
+
+```{r,fig.align="center",fig.width=8,fig.height=10}
+crorterr_crq <- ytsghjjj %>% correlate(target = classe__C)
+crorterr_crq %>% plot_correlation_funnel(interactive = T,limits = c(-0.5,0.5))
+```
+
+```{r, echo=FALSE, eval=FALSE}
+# this section is to find the top features for this classe which are not correlated with others
+tempqq_crq <- head(crorterr_crq %>% mutate(corr = abs(correlation)) %>% 
+  arrange(desc(corr)) %>% select(feature) %>% unique(),20)
+tempqq_crq$feature[which(tempqq_crq$feature %in% klrs)]
+```
+
+```{r,fig.align="center",fig.width=8,fig.height=10}
+corrqwertew_drq <- ytsghjjj %>% correlate(target = classe__D)
+corrqwertew_drq %>% plot_correlation_funnel(interactive = T,limits = c(-0.5,0.5))
+```
+
+```{r, echo=FALSE, eval=FALSE}
+# this section is to find the top features for this classe which are not correlated with others
+tempqwefdcs_drq <- head(corrqwertew_drq %>% mutate(corr = abs(correlation)) %>% 
+  arrange(desc(corr)) %>% select(feature) %>% unique(),20)
+tempqwefdcs_drq$feature[which(tempqwefdcs_drq$feature %in% klrs)]
+```
+
+
+```{r,fig.align="center",fig.width=8,fig.height=10}
+corrqwedsw_erq <- ytsghjjj %>% correlate(target = classe__E)
+corrqwedsw_erq %>% plot_correlation_funnel(interactive = T,limits = c(-0.5,0.5))
+```
+
+
+```{r, echo=FALSE, eval=FALSE}
+# this section is to find the top features for this classe which are not correlated with others
+tempsfgfg_erq <- head(corrqwedsw_erq %>% mutate(corr = abs(correlation)) %>% 
+  arrange(desc(corr)) %>% select(feature) %>% unique(),20)
+tempsfgfg_erq$feature[which(tempsfgfg_erq$feature %in% klrs)]
+```
+
+
+```{r}
+#subseting ftgh
+cool_iearq <- c("magnet_arm_x", "pitch_forearm" , "magnet_dumbbell_y", 
+           "roll_forearm", "gyros_dumbbell_y") 
+cool_iebrq <- c("magnet_dumbbell_y", "magnet_dumbbell_x" , "roll_dumbbell" , 
+           "magnet_belt_y" , "accel_dumbbell_x" )
+cool_iecrq <- c("magnet_dumbbell_y", "roll_dumbbell" , "accel_dumbbell_y" , 
+           "magnet_dumbbell_x", "magnet_dumbbell_z")
+cool_iedrq <- c("pitch_forearm" , "magnet_arm_y" , "magnet_forearm_x",
+           "accel_dumbbell_y", "accel_forearm_x")
+cool_ieerq <- c("magnet_belt_y" , "magnet_belt_z" , "roll_belt", 
+           "gyros_belt_z" , "magnet_dumbbell_y")
+flsks_cols_qwef <- character()
+for(c in c(cool_iearq,cool_iebrq,cool_iecrq,cool_iedrq,cool_ieerq)){
+  flsks_cols_qwef <- union(flsks_cols_qwef, c)
+}
+ftgh2 <- ftgh %>% select(flsks_cols_qwef, classe)
+data.frame("arm" = sum(grepl("_arm",flsks_cols_qwef)), 
+           "forearm" = sum(grepl("_forearm",flsks_cols_qwef)),
+           "belt" = sum(grepl("_belt",flsks_cols_qwef)),
+           "dumbbell" = sum(grepl("_dumbbell",flsks_cols_qwef)))
+```
+
+```{r, fig.align="center",fig.height=15,fig.width=15}
+my_dens_qwedfv <- function(data, mapping, ...) {
+  ggplot(data = data, mapping=mapping) +
+    geom_density(..., alpha = 0.3)+scale_fill_brewer(palette="Set2") 
+}
+my_points_qwedfv <- function(data, mapping, ...) {
+  ggplot(data = data, mapping=mapping) +
+    geom_point(..., alpha = 0.1)+ scale_fill_brewer(palette="Set2") 
+}
+ggpairs(ftgh2, columns = 1:5,aes(color = classe),
+        lower = list(continuous = my_points_qwedfv),diag = list(continuous = my_dens_qwedfv))
+```
+
+```{r,fig.align="center",fig.height=15,fig.width=15}
+ggpairs(ftgh2, columns = 6:10,aes(color = classe),
+        lower = list(continuous = my_points_qwedfv),diag = list(continuous = my_dens_qwedfv))
+```
+
+```{r,fig.align="center",fig.height=15,fig.width=15}
+ggpairs(ftgh2, columns = 11:17,aes(color = classe),
+        lower = list(continuous = my_points_qwedfv),diag = list(continuous = my_dens_qwedfv))
+```
+
+```{r}
+xxxxaaF <- xxxxaa %>% select(flsks_cols_qwef,classe)
+pqrsF <- pqrs %>% select(flsks_cols_qwef,classe)
+xxxxaaF[,1:17] <- sapply(xxxxaaF[,1:17],as.numeric)
+pqrsF[,1:17] <- sapply(pqrsF[,1:17],as.numeric)
+levels <- c("A", "B", "C", "D", "E")
+preprop_obj <- preProcess(xxxxaaF[,-18],method = c("center","scale","BoxCox"))
+xTrain <- predict(preprop_obj,select(xxxxaaF,-classe))
+yTrain <- factor(xxxxaaF$classe,levels=levels)
+xVal <- predict(preprop_obj,select(pqrsF,-classe))
+yVal <- factor(pqrsF$classe,levels=levels)
+trControl <- trainControl(method="cv", number=5)
+#CFtree
+modelCT <- train(x = xTrain,y = yTrain, 
+                 method = "rpart", trControl = trControl)
+#RF
+modelRF <- train(x = xTrain,y = yTrain, 
+                 method = "rf", trControl = trControl,verbose=FALSE, metric = "Accuracy")
+#GBM
+#taking too long
+modelGBM <- train(x = xTrain,y = yTrain, 
+                  method = "gbm",trControl=trControl, verbose=FALSE)
+#SVM
+modelSVM <- svm(x = xTrain,y = yTrain,
+                kernel = "polynomial", cost = 10)
+```
+
+```{r}
+confusionMatrix(predict(modelCT,xVal),yVal)
+```
+
+```{r}
+confusionMatrix(predict(modelRF,xVal),yVal)
+```
+
+```{r}
+plot(modelRF$finalModel,main="Error VS no of tree")
+```
+
+```{r}
+confusionMatrix(predict(modelGBM,xVal),yVal)
+```
+
+```{r}
+confusionMatrix(predict(modelSVM,xVal),yVal)
+```
+
+```{r}
+yyyybb2 <- yyyybb %>% select(flsks_cols_qwef,problem_id)
+xTest <- yyyybb2 %>% select(flsks_cols_qwef)
+  
+result <- data.frame("problem_id" = yyyybb$problem_id,
+                     "PREDICTION_RF" = predict(modelRF,xTest),
+                     "PREDICTION_GBM" = predict(modelGBM,xTest),
+                     "PREDICTION_SVM" = predict(modelSVM,xTest))
+result
+```
+
